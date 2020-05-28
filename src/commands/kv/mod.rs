@@ -4,6 +4,7 @@ use std::time::Duration;
 use cloudflare::framework::auth::Credentials;
 use cloudflare::framework::response::ApiFailure;
 use cloudflare::framework::{Environment, HttpApiClient, HttpApiClientConfig};
+use cloudflare::framework::apiclient::ApiClient;
 
 use percent_encoding::{percent_encode, PATH_SEGMENT_ENCODE_SET};
 
@@ -15,21 +16,6 @@ use crate::http::{self, feature::headers};
 pub mod bulk;
 pub mod key;
 pub mod namespace;
-
-// Create a special API client that has a longer timeout than usual, given that KV operations
-// can be lengthy if payloads are large.
-fn api_client(user: &GlobalUser) -> Result<HttpApiClient, failure::Error> {
-    let config = HttpApiClientConfig {
-        http_timeout: Duration::from_secs(5 * 60),
-        default_headers: headers(None),
-    };
-
-    HttpApiClient::new(
-        Credentials::from(user.to_owned()),
-        config,
-        Environment::Production,
-    )
-}
 
 // TODO: callers outside this module should write their own error handling (lookin at you sites)
 pub fn format_error(e: ApiFailure) -> String {
